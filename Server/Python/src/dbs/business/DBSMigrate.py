@@ -12,7 +12,7 @@ from WMCore.DAOFactory import DAOFactory
 
 #temporary thing
 import pycurl
-import cjson
+import ujson
 import json
 import os
 import socket
@@ -92,8 +92,8 @@ class DBSMigrate:
                                             srcdataset, order_counter)
             if tmp_ordered_dict != {}:
                 ordered_dict.update(tmp_ordered_dict)
-		self.logger.debug("ordered_dict length at level %s" %order_counter)
-		self.logger.debug(len(ordered_dict))
+                self.logger.debug("ordered_dict length at level %s" %order_counter)
+                self.logger.debug(len(ordered_dict))
             else:
                 #return {}
                 m = 'Requested dataset %s is already in destination' %srcdataset
@@ -103,8 +103,8 @@ class DBSMigrate:
                                                 srcdataset, order_counter+1)
             if parent_ordered_dict != {}:
                 ordered_dict.update(parent_ordered_dict)
-		self.logger.debug("***** parent ordered_dict length at level %s ******" %(order_counter+1))
-		self.logger.debug(len(ordered_dict))
+                self.logger.debug("***** parent ordered_dict length at level %s ******" %(order_counter+1))
+                self.logger.debug(len(ordered_dict))
             return remove_duplicated_items(ordered_dict)
         except dbsException:
             raise
@@ -131,19 +131,19 @@ class DBSMigrate:
             e = "DBSMigration: No blocks in the required dataset %s found at source %s."%(inputdataset, url)
             dbsExceptionHandler('dbsException-invalid-input2', e, self.logger.exception, e)
         dstblks = self.blocklist.execute(conn, dataset=inputdataset)
-	self.logger.debug("******* dstblks for dataset %s ***********" %inputdataset)
-	self.logger.debug(dstblks)
+        self.logger.debug("******* dstblks for dataset %s ***********" %inputdataset)
+        self.logger.debug(dstblks)
         blocksInSrcNames = [ y['block_name'] for y in srcblks]
-	blocksInDstNames = []
-	for item in dstblks:
-	    blocksInDstNames.append(item['block_name'])
+        blocksInDstNames = []
+        for item in dstblks:
+            blocksInDstNames.append(item['block_name'])
         ordered_dict[order_counter] = []
         for ablk in blocksInSrcNames:
             if not ablk in blocksInDstNames:
                 ordered_dict[order_counter].append(ablk)
         if ordered_dict[order_counter] != []:
-	    self.logger.debug("**** ordered_dict dict length ****")
-	    self.logger.debug(len(ordered_dict)) 	
+            self.logger.debug("**** ordered_dict dict length ****")
+            self.logger.debug(len(ordered_dict)) 	
             return ordered_dict
         else:
             return {}
@@ -165,21 +165,21 @@ class DBSMigrate:
             for aparentDataset in parentSrcDatasetNames:
                 parent_ordered_dict = self.processDatasetBlocks(url, conn,
                                             aparentDataset, order_counter)
-		self.logger.debug("************ dict length of parent blocks for the parent dataset %s at level %s" %(aparentDataset, order_counter))
-		self.logger.debug(len(parent_ordered_dict))
+                self.logger.debug("************ dict length of parent blocks for the parent dataset %s at level %s" %(aparentDataset, order_counter))
+                self.logger.debug(len(parent_ordered_dict))
                 if parent_ordered_dict != {}:
                     ordered_dict.update(parent_ordered_dict)
-		    self.logger.debug("**** ordered_dict length ****")
-		    self.logger.debug(len(ordered_dict))	
+                    self.logger.debug("**** ordered_dict length ****")
+                    self.logger.debug(len(ordered_dict))	
                 # parents of parent
                 pparent_ordered_dict = self.getParentDatasetsOrderedList(url,
                                     conn, aparentDataset, order_counter+1)
-		self.logger.debug("************dict length parent parent blocks for the parent dataset %s at level %s" %(aparentDataset, order_counter+1))
-		self.logger.debug(len(pparent_ordered_dict))
+                self.logger.debug("************dict length parent parent blocks for the parent dataset %s at level %s" %(aparentDataset, order_counter+1))
+                self.logger.debug(len(pparent_ordered_dict))
                 if pparent_ordered_dict != {}:
                     ordered_dict.update(pparent_ordered_dict)
-	            self.logger.debug("**** ordered_dict length ****")
-		    self.logger.debug(len(ordered_dict))	
+                    self.logger.debug("**** ordered_dict length ****")
+                    self.logger.debug(len(ordered_dict))	
         return ordered_dict
 
     def prepareBlockMigrationList(self, conn, request):
@@ -200,10 +200,10 @@ class DBSMigrate:
         try:
             #1.
             dstblock = self.blocklist.execute(conn, block_name=block_name)
-	    for item in dstblock:
-		if item:
-		    dbsExceptionHandler('dbsException-invalid-input', 'ALREADY EXISTS: \
-			Required block (%s) migration is already at destination' %block_name, self.logger.exception)
+            for item in dstblock:
+                if item:
+                    dbsExceptionHandler('dbsException-invalid-input', 'ALREADY EXISTS: \
+			            Required block (%s) migration is already at destination' %block_name, self.logger.exception)
             #2.
             srcblock = self.getSrcBlocks(url, block=block_name)
             if len(srcblock) < 1:
@@ -221,14 +221,14 @@ class DBSMigrate:
 
             return remove_duplicated_items(ordered_dict)
         except Exception as ex:
-	    if '500 Internal Server Error' in str(ex):	
-		#"Server Error" is the default in dbsExceptionHandler
-	        dbsExceptionHandler('Server Error', str(ex), self.logger.exception, "DBSMigrate/prepareBlockMigrationList: "+str(ex))
-	    if isinstance(ex, pycurl.error):
-		if ex.args[0] == 7:
-		    message = ex.args[1]
-		    dbsExceptionHandler('dbsException-failed-connect2host', message, self.logger.exception, message)	
-	    if 'urlopen error' in str(ex):
+            if '500 Internal Server Error' in str(ex):	
+		        #"Server Error" is the default in dbsExceptionHandler
+                dbsExceptionHandler('Server Error', str(ex), self.logger.exception, "DBSMigrate/prepareBlockMigrationList: "+str(ex))
+            if isinstance(ex, pycurl.error):
+                if ex.args[0] == 7:
+                    message = ex.args[1]
+                    dbsExceptionHandler('dbsException-failed-connect2host', message, self.logger.exception, message)	
+            if 'urlopen error' in str(ex):
                 message='Connection to source DBS server refused. Check your source url.'
             elif 'Bad Request' in str(ex):
                 message='cannot get data from the source DBS server. Check your migration input.'
@@ -253,15 +253,15 @@ class DBSMigrate:
             # This assumes that all parent blocks are from a same dataset. Is this true? YG 6/12/2012
             # Confirmed by S. Foulkes, all parent's blocks belongs to a same dataset.
             # 3/6/2014 YG: Seems it is not the case that all parents are from the same dataset regarding to crab data
-	    parent_ds_lst = []	
-	    for ps in parentBlocksInSrcNames:	
-		parent_dataset = ps.split('#')[0]
-		if parent_dataset not in parent_ds_lst:
-			parent_ds_lst.append(parent_dataset)
-	    parentBlocksInDst = []
- 	    for rpds in parent_ds_lst:
-		lpds =  self.blocklist.execute(conn, rpds)
-		parentBlocksInDst.extend(lpds)
+            parent_ds_lst = []	
+            for ps in parentBlocksInSrcNames:	
+                parent_dataset = ps.split('#')[0]
+                if parent_dataset not in parent_ds_lst:
+                    parent_ds_lst.append(parent_dataset)
+            parentBlocksInDst = []
+            for rpds in parent_ds_lst:
+                lpds =  self.blocklist.execute(conn, rpds)
+                parentBlocksInDst.extend(lpds)
             #YG 7/24/2012
             parentBlocksInDstNames = [y['block_name']
                                             for y in parentBlocksInDst]
@@ -321,7 +321,7 @@ class DBSMigrate:
                 conn.close()
             #if the queued is not failed, then we don't need to do it again.
             #add a new migration_status=9 (terminal failure)
-	    if is_already_queued and alreadyqueued[0]['migration_status'] == 2:
+            if is_already_queued and alreadyqueued[0]['migration_status'] == 2:
                 return {"migration_report" : "REQUEST ALREADY QUEUED. Migration is finished",
                         "migration_details" : alreadyqueued[0] }
             elif is_already_queued and alreadyqueued[0]['migration_status'] != 9:
@@ -351,14 +351,14 @@ class DBSMigrate:
             self.mgrin.execute(conn, request, tran)
             # INSERT the ordered_list
             totalQueued = 0
-	    k = sorted(ordered_list.keys())
-	    k.reverse()	
-	    self.logger.debug("****************** ordered_list keys **********")
+            k = sorted(ordered_list.keys())
+            k.reverse()	
+            self.logger.debug("****************** ordered_list keys **********")
             self.logger.debug(k)
-            #for iter in reversed(range(len(ordered_list))):
-	    for iter in k:	
-		self.logger.debug("length for Key: %s" %iter)
-	        self.logger.debug(len(ordered_list[iter]))	
+            #for iter in reversed(range(len(ordered_list))):        
+            for iter in k:	
+                self.logger.debug("length for Key: %s" %iter)
+                self.logger.debug(len(ordered_list[iter]))	
                 if len(ordered_list[iter]) > 0:
                     daoinput = [{
                         "migration_block_id" :
@@ -384,11 +384,11 @@ class DBSMigrate:
                 "migration_report" : "REQUEST QUEUED with total %d blocks to be migrated" %totalQueued,
                 "migration_details" : request }
         except SQLAlchemyIntegrityError as ex:
-	    e = "DBSMigration:  ENQUEUEING_FAILED1 from SQLAichemy Integrity Error. Reason may be (%s)" %(ex.statement + "; " + str(ex.params) + "; " + str(ex.orig))
-	    self.logger.debug(e)		
-	    import traceback
+            e = "DBSMigration:  ENQUEUEING_FAILED1 from SQLAichemy Integrity Error. Reason may be (%s)" %(ex.statement + "; " + str(ex.params) + "; " + str(ex.orig))
+            self.logger.debug(e)		
+            import traceback
             tk = traceback.format_exc() 		
-	    self.logger.debug(tk) 	
+            self.logger.debug(tk) 	
             tran.rollback()
             if conn: conn.close()
             if (str(ex).find("unique constraint") != -1 or
@@ -401,13 +401,13 @@ class DBSMigrate:
                     "migration_details" : request }
             else:
                 if conn: conn.close()
-		self.logger.error(tk)
+                self.logger.error(tk)
                 m = "DBSMigration:  ENQUEUEING_FAILED1."
                 dbsExceptionHandler('dbsException-invalid-input2', m, self.logger.exception, e)
-	except HTTPError as he:
-	    raise he	
+        except HTTPError as he:
+            raise he	
         except Exception as ex:
-	    import traceback
+            import traceback
             self.logger.error(traceback.format_exc())	
             if tran: tran.rollback()
             if conn: conn.close()
@@ -538,7 +538,7 @@ class DBSMigrate:
             UserID = os.environ['USER']+'@'+socket.gethostname()
             request_headers =  {"Content-Type": content, "Accept": content, "UserID": UserID }
             #params = {'block_name':blockname}
-            data = cjson.encode(data)
+            data = ujson.encode(data)
             restapi = self.rest_client_pool.get_rest_client()
             httpresponse = restapi.get(resturl, method, params, data, request_headers)
             return httpresponse.body
@@ -557,7 +557,7 @@ class DBSMigrate:
         """
         #resturl = "%s/datasetparents?dataset=%s" % (url, dataset)
         params={'dataset':dataset}
-        return cjson.decode(self.callDBSService(url, 'datasetparents', params, {}))
+        return ujson.decode(self.callDBSService(url, 'datasetparents', params, {}))
 
     def getSrcBlockParents(self, url, block):
         """
@@ -566,7 +566,7 @@ class DBSMigrate:
         #blockname = block.replace("#", urllib.quote_plus('#'))
         #resturl = "%s/blockparents?block_name=%s" % (url, blockname)
         params={'block_name':block}
-        return cjson.decode(self.callDBSService(url, 'blockparents', params, {}))
+        return ujson.decode(self.callDBSService(url, 'blockparents', params, {}))
 
     def getSrcBlocks(self, url, dataset="", block=""):
         """
@@ -583,4 +583,4 @@ class DBSMigrate:
             e = 'DBSMigrate/getSrcBlocks: Invalid input.  Either block or dataset name has to be provided'
             dbsExceptionHandler('dbsException-invalid-input2', m, self.logger.exception, e )
 
-        return cjson.decode(self.callDBSService(url, 'blocks', params, {}))
+        return ujson.decode(self.callDBSService(url, 'blocks', params, {}))

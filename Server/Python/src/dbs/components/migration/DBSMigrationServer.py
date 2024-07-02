@@ -68,7 +68,7 @@ from dbs.utils.dbsException import dbsException, dbsExceptionCode
 from dbs.business.DBSMigrate import DBSMigrate  
 from dbs.business.DBSBlockInsert import DBSBlockInsert
 from cherrypy import HTTPError
-import json, cjson
+import json, ujson
 class SequencialTaskBase(object):
     
     def __init__(self, *args, **kwargs):
@@ -132,9 +132,9 @@ class MigrationTask(SequencialTaskBase):
         try:
             #set  MIGRATION_STATUS = 1(in progess) and commit it imeditaly to avoid other threads to touch it.
             req = self.dbsMigrate.listMigrationRequests(oldest=True)
-	    if len(req) == 0:
-		self.sourceUrl = None
-		return   # don't need to go down.			
+            if len(req) == 0:
+                self.sourceUrl = None
+                return   # don't need to go down.			
             try:
                 request =req[0]
                 self.sourceUrl = request['migration_url']
@@ -187,7 +187,7 @@ class MigrationTask(SequencialTaskBase):
                 for idx, bName in enumerate(self.block_names):
                     params={'block_name':bName}
                     data = self.dbsMigrate.callDBSService(self.sourceUrl, 'blockdump', params)
-                    data = cjson.decode(data)
+                    data = ujson.decode(data)
 		    #MgrLogger.error( "--YG migration server blockdump--")
 		    #MgrLogger.error( data)	
                     migration_status = 0
@@ -196,7 +196,7 @@ class MigrationTask(SequencialTaskBase):
                     try:
                         self.DBSBlockInsert.putBlock(data, migration=True)
                         migration_status = 2
-		    except HTTPError as he:
+                    except HTTPError as he:
                         if "Block %s already exists" % (bName) in str(he):
                             migration_status = 2
                         else:

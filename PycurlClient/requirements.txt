@@ -1,2 +1,3 @@
-python-cjson==1.2.1
+#python-cjson==1.2.1
+ujson
 pycurl==7.19.3

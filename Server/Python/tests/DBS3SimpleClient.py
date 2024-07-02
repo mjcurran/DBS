@@ -8,7 +8,7 @@ __revision__ = "$Id: DBS3SimpleClient.py,v 1.8 2009/11/29 11:37:54 akhukhun Exp 
 __version__ = "$Revision: 1.8 $"
 
 import sys
-import cjson
+import ujson
 import urllib.request, urllib.parse, urllib.error, urllib.request, urllib.error, urllib.parse
 
 class DBS3Client:
@@ -25,7 +25,7 @@ class DBS3Client:
         #req = urllib2.Request(url = url, headers = self.header)
         req = urllib.request.Request(url = url)
         data = self.opener.open(req)
-        #ddata = cjson.decode(data.read())
+        #ddata = ujson.decode(data.read())
         #return ddata
         a = data.read()
         data.close()
@@ -36,7 +36,7 @@ class DBS3Client:
         url = self.baseurl + apiurl
         header = self.header
         header['Content-Type'] = 'application/json'
-        endata = cjson.encode(indata)
+        endata = ujson.encode(indata)
         req = urllib.request.Request(url = url, data = endata, headers = header)
         req.get_method = lambda: 'POST'
         self.opener.open(req)

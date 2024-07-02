@@ -4,7 +4,7 @@
 ## a block into DBS3.
 ##
 import os, sys, imp
-import cjson
+import ujson
 import pprint
 import ast 
 from dbs.apis.dbsClient import *

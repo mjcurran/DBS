@@ -3,7 +3,7 @@
 """
 This module provides business object class to interact with File.
 """
-
+import ujson
 from WMCore.DAOFactory import DAOFactory
 from dbs.utils.dbsExceptionHandler import dbsExceptionHandler
 from sqlalchemy.exc import IntegrityError as SQLAlchemyIntegrityError
@@ -65,7 +65,7 @@ class DBSFile:
                 run_num = input_body.get("run_num", -1)
                 validFileOnly = input_body.get("validFileOnly", 0)
                 block_name = ""
-            except cjson.DecodeError as de:
+            except ujson.JSONDecodeError as de:
                 msg = "business/listFileLumis requires at least a list of logical_file_name. %s" % de
                 dbsExceptionHandler('dbsException-invalid-input2', "Invalid input", self.logger.exception, msg)
         elif input_body != -1 and (logical_file_name is not None or block_name is not None): 
@@ -190,28 +190,28 @@ class DBSFile:
 	non-patterned lfn list
         """
         if input_body != -1 :
-	    try:
+            try:
                 logical_file_name = input_body.get("logical_file_name", "")
                 run_num = input_body.get("run_num", -1)
                 validFileOnly = input_body.get("validFileOnly", 0)
                 sumOverLumi = input_body.get("sumOverLumi", 0)  
-		detail = input_body.get("detail", False)
+                detail = input_body.get("detail", False)
                 block_name = input_body.get("block_name", "")
-		dataset = input_body.get("dataset", "") 
-		release_version = input_body.get("release_version", "")
-		pset_hash = input_body.get("pset_hash", "")
-	        app_name = input_body.get("app_name", "")
-		output_module_label = input_body.get("output_module_label", "")
-		origin_site_name = input_body.get("origin_site_name", "")
-		lumi_list = input_body.get("lumi_list", [])	
-            except cjson.DecodeError as de:
+                dataset = input_body.get("dataset", "") 
+                release_version = input_body.get("release_version", "")
+                pset_hash = input_body.get("pset_hash", "")
+                app_name = input_body.get("app_name", "")
+                output_module_label = input_body.get("output_module_label", "")
+                origin_site_name = input_body.get("origin_site_name", "")
+                lumi_list = input_body.get("lumi_list", [])	
+            except ujson.JSONDecodeError as de:
                 msg = "business/listFilss POST call requires at least dataset, block_name, or a list of logical_file_name %s" % de
                 dbsExceptionHandler('dbsException-invalid-input', "Invalid input", self.logger.exception, msg)
 
         if ('%' in block_name):
             dbsExceptionHandler('dbsException-invalid-input', "You must specify exact block name not a pattern", self.logger.exception)
         elif ('%' in dataset):
-	    print("***** in dataset name")
+            print("***** in dataset name")
             dbsExceptionHandler('dbsException-invalid-input', " You must specify exact dataset name not a pattern", self.logger.exception)
         elif (not dataset  and not block_name and (not logical_file_name or '%'in logical_file_name) ):
             dbsExceptionHandler('dbsException-invalid-input', """You must specify one of the parameter groups:  \
@@ -239,7 +239,7 @@ class DBSFile:
                 else:
                     dbsExceptionHandler('dbsException-invalid-input', "Lumi list must accompany A single run number,\
                         use run_num=123", self.logger.exception)
-	else:
+        else:
             pass
         with self.dbi.connection() as conn:
             dao = (self.filebrieflist, self.filelist)[detail]
@@ -317,18 +317,18 @@ class DBSFile:
                 fileconfigs = [] # this will hold file configs that we will list in the insert file logic below
                 if block_name != f["block_name"]:
                     block_info = self.blocklist.execute(conn, block_name=f["block_name"])
-		    for b in block_info:
-			if not b  : 
-			    dbsExceptionHandler( "dbsException-missing-data", "Required block not found", None,
+                    for b in block_info:
+                        if not b  : 
+                            dbsExceptionHandler( "dbsException-missing-data", "Required block not found", None,
                                                           "Cannot found required block %s in DB" %f["block_name"])
-			else:	
-			    if  b["open_for_writing"] != 1 : 
-				dbsExceptionHandler("dbsException-conflict-data", "Block closed", None,
-				    "Block %s is not open for writting" %f["block_name"])
-			    if "block_id" in b:
-				block_id = b["block_id"]
-			    else:
-				dbsExceptionHandler("dbsException-missing-data", "Block not found", None,
+                        else:	
+                            if  b["open_for_writing"] != 1 : 
+                                dbsExceptionHandler("dbsException-conflict-data", "Block closed", None,
+				                    "Block %s is not open for writting" %f["block_name"])
+                            if "block_id" in b:
+                                block_id = b["block_id"]
+                            else:
+                                dbsExceptionHandler("dbsException-missing-data", "Block not found", None,
                                           "Cannot found required block %s in DB" %f["block_name"])
                 else: dbsExceptionHandler('dbsException-missing-data', "Required block name Not Found in input.",
                                             None, "Required block Not Found in input.")

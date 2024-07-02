@@ -8,7 +8,7 @@ import threading
 from DBS3SimpleClient import DBS3Client
 from threading import Thread
 import time
-import cjson
+import ujson
 
 class DBS3ListTest(Thread):
     def __init__(self, IC, url = "http://localhost:8585/dbs3/"):
@@ -23,7 +23,7 @@ class DBS3ListTest(Thread):
         #listDatasets
         t = time.time()
         res = self.cli.get("datasets")
-        datasets = cjson.decode(res)["result"]
+        datasets = ujson.decode(res)["result"]
         for i in range(20):
             d = datasets[i]
             files = self.cli.get("files?dataset=%s" % d["DATASET"])

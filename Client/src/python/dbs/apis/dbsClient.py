@@ -5,7 +5,7 @@ from RestClient.RestApi import RestApi
 from RestClient.AuthHandling.X509Auth import X509Auth
 from RestClient.ProxyPlugins.Socks5Proxy import Socks5Proxy
 
-import cjson
+import ujson
 import os
 import socket
 import sys
@@ -195,7 +195,7 @@ class DbsApi(object):
 
         method_func = getattr(self.rest_api, callmethod.lower())
 
-        data = cjson.encode(data)
+        data = ujson.encode(data)
 
         try:
             self.http_response = method_func(self.url, method, params, data, request_headers)
@@ -206,8 +206,8 @@ class DbsApi(object):
             return self.http_response.body
 
         try:
-            json_ret=cjson.decode(self.http_response.body)
-        except cjson.DecodeError:
+            json_ret=ujson.decode(self.http_response.body)
+        except ujson.JSONDecodeError:
             print("The server output is not a valid json, most probably you have a typo in the url.\n%s.\n" % self.url, file=sys.stderr)
             raise dbsClientException("Invalid url", "Possible urls are %s" %self.http_response.body)
 
@@ -222,7 +222,7 @@ class DbsApi(object):
         data = http_error.body
         try:
             if isinstance(data, str):
-                data = cjson.decode(data)
+                data = ujson.decode(data)
         except:
             raise http_error
 
@@ -714,7 +714,7 @@ class DbsApi(object):
 
         checkInputParameter(method="listBlockOrigin", parameters=list(kwargs.keys()), validParameters=validParameters,
                             requiredParameters=requiredParameters)
-	return self.__callServer('blockorigin', params=kwargs)
+        return self.__callServer('blockorigin', params=kwargs)
 
     def listDatasets(self, **kwargs):
         """
@@ -830,7 +830,7 @@ class DbsApi(object):
 
         """
         validParameters = ['dataset', 'dataset_access_type', 'detail', 'dataset_id']
-	requiredParameters = {'multiple': ['dataset', 'dataset_id']}
+        requiredParameters = {'multiple': ['dataset', 'dataset_id']}
 
         checkInputParameter(method="listDatasetArray", parameters=list(kwargs.keys()), validParameters=validParameters,
                             requiredParameters=requiredParameters)
@@ -993,7 +993,7 @@ class DbsApi(object):
 
         """
         validParameters = ['logical_file_name', 'run_num', 'validFileOnly']
-	requiredParameters = {'forced': ['logical_file_name']}
+        requiredParameters = {'forced': ['logical_file_name']}
 
         checkInputParameter(method="listFileLumiArray", parameters=list(kwargs.keys()), validParameters=validParameters,
                             requiredParameters=requiredParameters)
@@ -1445,9 +1445,9 @@ class DbsApi(object):
         """
         validParameters = ['processing_version']
         
-	checkInputParameter(method="listProcessingEras", parameters=list(kwargs.keys()), validParameters=validParameters)
+        checkInputParameter(method="listProcessingEras", parameters=list(kwargs.keys()), validParameters=validParameters)
         
-	return self.__callServer("processingeras", params=kwargs)
+        return self.__callServer("processingeras", params=kwargs)
 
     def listReleaseVersions(self, **kwargs):
         """

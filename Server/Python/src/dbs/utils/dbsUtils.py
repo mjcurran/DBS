@@ -2,7 +2,7 @@
 """ DBS utility class """
 
 import cherrypy 
-import cjson
+import ujson
 from time import time
 import getpass
 
@@ -12,10 +12,10 @@ class dbsUtils:
     """dbsUtils class provides time, client names, etc functions."""
 
     def __init__(self):
-	pass
+        pass
 
     def getTime(self):
-	return time()
+        return time()
 
     def getCreateBy(self):
         user = ''
@@ -31,17 +31,17 @@ class dbsUtils:
         return user
 
     def getModifiedBy(self):
-	return self.getCreateBy()		
+        return self.getCreateBy()		
 
     def decodeLumiIntervals(self, lumi_list):
-	"""lumi_list must be of one of the two following formats: 
+        """lumi_list must be of one of the two following formats: 
 	   '[[a,b], [c,d],' or 
 	   [a1, a2, a3] """
-	errmessage = "lumi intervals must be of one of the two following formats: '[[a,b], [c,d], ...],' or [a1, a2, a3 ...] "
+        errmessage = "lumi intervals must be of one of the two following formats: '[[a,b], [c,d], ...],' or [a1, a2, a3 ...] "
 
         if isinstance(lumi_list, str):
             try:
-                lumi_list = cjson.decode(lumi_list)
+                lumi_list = ujson.decode(lumi_list)
             except:
                 dbsExceptionHandler("dbsException-invalid-input2", "invalid lumi format", None, "Could not decode the input lumi_list: %s" % lumi_list)
 
@@ -77,6 +77,6 @@ def jsonstreamer(func):
                 yield ","
             else:
                 firstItem = False
-            yield cjson.encode(item)
+            yield ujson.encode(item)
         yield "]"
     return wrapper

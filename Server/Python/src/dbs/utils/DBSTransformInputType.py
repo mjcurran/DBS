@@ -1,6 +1,6 @@
 """
 Decorator to change the type of an url parameter. url parameters containing a
-list are usually encoded as strings. This decorator uses cjson.decode to
+list are usually encoded as strings. This decorator uses ujson.decode to
 re-transform them to a list
 """
 import ast

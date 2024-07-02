@@ -8,7 +8,7 @@ from WMCore.WebTools.RESTModel import RESTModel
 from WMCore.DAOFactory import DAOFactory
 from dbs.utils.dbsUtils import dbsUtils
 from dbs.utils.dbsExceptionDef import DBSEXCEPTIONS
-import cjson
+import ujson
 from sqlalchemy import exceptions
 
 class DBSServicesRegistry(RESTModel):
@@ -62,7 +62,7 @@ class DBSServicesRegistry(RESTModel):
         try:
             
             body = request.body.read()
-            service = cjson.decode(body)
+            service = ujson.decode(body)
             addthis = {}
             addthis['service_id'] = self.sm.increment(conn, "SEQ_RS", tran)
             addthis['name'] = service.get('NAME', '')

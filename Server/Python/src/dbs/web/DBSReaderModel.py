@@ -8,7 +8,7 @@ DBS Reader Rest Model module
 __revision__ = "$Id: DBSReaderModel.py,v 1.50 2010/08/13 20:38:37 yuyi Exp $"
 __version__ = "$Revision: 1.50 $"
 
-import cjson
+import ujson
 import re
 import traceback
 
@@ -527,7 +527,7 @@ class DBSReaderModel(RESTModel):
         try :
             body = request.body.read()
             if body:
-                data = cjson.decode(body)
+                data = ujson.decode(body)
                 data = validateJSONInputNoCopy("dataset", data, read=True)
                 #Because CMSWEB has a 300 seconds responding time. We have to limit the array siz to make sure that
                 #the API can be finished in 300 second. 
@@ -538,7 +538,7 @@ class DBSReaderModel(RESTModel):
                     dbsExceptionHandler("dbsException-invalid-input",
                                         "The Max list length supported in listDatasetArray is %s." %max_array_size, self.logger.exception)    
                 ret = self.dbsDataset.listDatasetArray(data)
-        except cjson.DecodeError as De:
+        except ujson.DecodeError as De:
             dbsExceptionHandler('dbsException-invalid-input2', "Invalid input", self.logger.exception, str(De))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
@@ -652,7 +652,7 @@ class DBSReaderModel(RESTModel):
         logical_file_name = logical_file_name.replace("*", "%")
         origin_site_name = origin_site_name.replace("*", "%")
         #
-	if isinstance(min_cdate, str) and ('*' in min_cdate or '%' in min_cdate):
+        if isinstance(min_cdate, str) and ('*' in min_cdate or '%' in min_cdate):
             min_cdate = 0
         else:
             try:
@@ -676,7 +676,7 @@ class DBSReaderModel(RESTModel):
             except:
                 dbsExceptionHandler("dbsException-invalid-input", "invalid input for max_cdate")
         #
-	if isinstance(max_ldate, str) and ('*' in max_ldate or '%' in max_ldate):
+        if isinstance(max_ldate, str) and ('*' in max_ldate or '%' in max_ldate):
             max_ldate = 0
         else:
             try:
@@ -704,12 +704,12 @@ class DBSReaderModel(RESTModel):
         try:
             b= self.dbsBlock.listBlocks(dataset, block_name, data_tier_name, origin_site_name, logical_file_name,
                                   run_num, min_cdate, max_cdate, min_ldate, max_ldate, cdate, ldate, open_for_writing, detail)
-	    #for item in b:
-		#yield item
-	    return b	
-	except HTTPError:
-	    raise	
-	except dbsException as de:
+	        #for item in b:
+		        #yield item
+            return b	
+        except HTTPError:
+            raise	
+        except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
         except Exception as ex:
             sError = "DBSReaderModel/listBlocks. %s\n. Exception trace: \n %s" \
@@ -775,7 +775,7 @@ class DBSReaderModel(RESTModel):
         """
         try :
             body = request.body.read()
-            data = cjson.decode(body)
+            data = ujson.decode(body)
             data = validateJSONInputNoCopy("block", data, read=True)
             #Because CMSWEB has a 300 seconds responding time. We have to limit the array siz to make sure that
             #the API can be finished in 300 second. 
@@ -787,7 +787,7 @@ class DBSReaderModel(RESTModel):
             return self.dbsBlock.listBlockParents(data["block_name"])
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
-        except cjson.DecodeError as de:
+        except ujson.DecodeError as de:
             sError = "DBSReaderModel/listBlockParents. %s\n. Exception trace: \n %s" \
                     % (de, traceback.format_exc())
             msg = "DBSReaderModel/listBlockParents. %s" % de
@@ -989,10 +989,10 @@ class DBSReaderModel(RESTModel):
             result =  self.dbsFile.listFiles(dataset, block_name, logical_file_name, release_version, pset_hash, app_name,
                                         output_module_label, run_num, origin_site_name, lumi_list, detail, 
                                         validFileOnly, sumOverLumi)
-    	    for item in result:
-		yield item	
-	except HTTPError as he:
-	    raise he
+            for item in result:
+                yield item	
+        except HTTPError as he:
+            raise he
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
         except Exception as ex:
@@ -1049,7 +1049,7 @@ class DBSReaderModel(RESTModel):
         try :
             body = request.body.read()
             if body:
-                data = cjson.decode(body)
+                data = ujson.decode(body)
                 data = validateJSONInputNoCopy("files", data, True)
                 if 'sumOverLumi' in data and data['sumOverLumi'] ==1:
                     if ('logical_file_name' in data and isinstance(data['logical_file_name'], list)) \
@@ -1090,7 +1090,7 @@ class DBSReaderModel(RESTModel):
                                         "The Max list length supported in listFileArray is %s." %max_array_size, self.logger.exception)
             #   
                 ret =  self.dbsFile.listFiles(input_body=data)
-        except cjson.DecodeError as De:
+        except ujson.DecodeError as De:
             dbsExceptionHandler('dbsException-invalid-input2', "Invalid input", self.logger.exception, str(De))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
@@ -1154,14 +1154,14 @@ class DBSReaderModel(RESTModel):
                                 self.logger.exception)
         try:
             r = self.dbsFile.listFileSummary(block_name, dataset, run_num, validFileOnly=validFileOnly, sumOverLumi=sumOverLumi)
-	    for item in r:
-		yield item	
-	except HTTPError as he:
-	    raise he
+            for item in r:
+                yield item	
+        except HTTPError as he:
+            raise he
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
-	except HTTPerror as he:
-	    raise he
+        except HTTPerror as he:
+            raise he
         except Exception as ex:
             sError = "DBSReaderModel/listFileSummaries. %s\n. Exception trace: \n %s" \
                     % (ex, traceback.format_exc())
@@ -1275,10 +1275,10 @@ class DBSReaderModel(RESTModel):
         """
         try:
             r = self.dbsFile.listFileParents(logical_file_name, block_id, block_name)
-	    for item in r:
-		yield item	
+            for item in r:
+                yield item	
         except HTTPError as he:
-	    raise he
+            raise he
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
         except Exception as ex:
@@ -1369,7 +1369,7 @@ class DBSReaderModel(RESTModel):
         try :
             body = request.body.read()
             if body:
-                data = cjson.decode(body)
+                data = ujson.decode(body)
                 data = validateJSONInputNoCopy('file_parent_lumi', data, read=True)
             else:
                 data = {}
@@ -1390,7 +1390,7 @@ class DBSReaderModel(RESTModel):
             result = self.dbsFile.listFileParentsByLumi(block_name=data["block_name"], logical_file_name=lfn)
             for r in result:
                 yield r
-        except cjson.DecodeError as De:
+        except ujson.DecodeError as De:
             dbsExceptionHandler('dbsException-invalid-input2', "Invalid input", self.logger.exception, str(De))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
@@ -1480,25 +1480,25 @@ class DBSReaderModel(RESTModel):
     @thr.make_throttled()
     def listFileLumiArray(self):
         """
-	API to list FileLumis for a given list of LFN. It is used with the POST method of fileLumis call.
-	
-        :param logical_file_name. Max length 1000.  
-	:type logical_file_name: list of str
-        :param block_name
-        :type block_name: str
-       	:param run_num  Possible format are: run_num, 'run_min-run_max' or ['run_min-run_max', run1, run2, ...].
-	:type list, str or int 
-	:param validFileOnly
-	:type str or int
-	:returns: List of dictionaries containing the following keys (lumi_section_num, logical_file_name, run_num)
-	:rtype: list of dicts
-	
-	"""
-	try :
-	    body = request.body.read()
-	    if body:
-		data = cjson.decode(body)
-		data = validateJSONInputNoCopy("files", data, read=True)
+        API to list FileLumis for a given list of LFN. It is used with the POST method of fileLumis call.
+        
+            :param logical_file_name. Max length 1000.  
+        :type logical_file_name: list of str
+            :param block_name
+            :type block_name: str
+            :param run_num  Possible format are: run_num, 'run_min-run_max' or ['run_min-run_max', run1, run2, ...].
+        :type list, str or int 
+        :param validFileOnly
+        :type str or int
+        :returns: List of dictionaries containing the following keys (lumi_section_num, logical_file_name, run_num)
+        :rtype: list of dicts
+        
+        """
+        try :
+            body = request.body.read()
+            if body:
+                data = ujson.decode(body)
+                data = validateJSONInputNoCopy("files", data, read=True)
             else:
                 data = {}
 
@@ -1525,17 +1525,17 @@ class DBSReaderModel(RESTModel):
                         elif (int(r[0]) <= 1 <= int(r[1])) and ('logical_file_name' not in data or not data['logical_file_name']):
                             dbsExceptionHandler("dbsException-invalid-input", "run_num cannot be 1 w/o lfn in filelumiarray API.",
                                 self.logger.exception) 
-	    result = self.dbsFile.listFileLumis(input_body=data)
-	    for r in result:
-	        yield r
-	except cjson.DecodeError as De:
-	    dbsExceptionHandler('dbsException-invalid-input2', "Invalid input", self.logger.exception, str(De))
+            result = self.dbsFile.listFileLumis(input_body=data)
+            for r in result:
+                yield r
+        except ujson.DecodeError as De:
+            dbsExceptionHandler('dbsException-invalid-input2', "Invalid input", self.logger.exception, str(De))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
-	except HTTPError as he:
-	    raise he
-	except Exception as ex:
-	    sError = "DBSReaderModel/listFileLumiArray. %s \n Exception trace: \n %s" \
+        except HTTPError as he:
+            raise he
+        except Exception as ex:
+            sError = "DBSReaderModel/listFileLumiArray. %s \n Exception trace: \n %s" \
             % (ex, traceback.format_exc())
             dbsExceptionHandler('dbsException-server-error', ex.message, self.logger.exception, sError)
 

@@ -2,7 +2,7 @@
 Input Validation to prohibit SQLInjection, XSS, ...
 To use with _validate_input method of the RESTModel implementation
 """
-import cjson
+import ujson
 from cherrypy import log as clog
 from dbs.utils.dbsExceptionHandler import dbsExceptionHandler
 from dbs.utils.dbsException import dbsException, dbsExceptionCode
@@ -48,7 +48,7 @@ def inputChecks(**_params_):
                 #"name=abc" is removed by the framework since name is not a key work for the api.
                 if name !='self':
                     types = _params_[name]
-                    #if name =='lumi_list': value = cjson.decode(value)
+                    #if name =='lumi_list': value = ujson.decode(value)
                     if not isinstance(value, types):
                         serverlog = "Expected '%s' to be %s; was %s." % (name, types, type(value))
                         #raise TypeError, "Expected '%s' to be %s; was %s." % (name, types, type(value))
@@ -66,12 +66,12 @@ def inputChecks(**_params_):
                                         searchdataset(value)
                                     else:
                                         reading_dataset_check(value)
-                                elif name =='lumi_list': value = cjson.decode(value)
+                                elif name =='lumi_list': value = ujson.decode(value)
                                 elif name =='validFileOnly': 
-				    try:
-				        int(value)
-				    except Exception as e:
-				        dbsExceptionHandler("dbsException-invalid-input2", message="invalid value for %s" %name, serverError="invalid value %s for %s" %(value, name), logger=log.error)	
+                                    try:
+                                        int(value)
+                                    except Exception as e:
+                                        dbsExceptionHandler("dbsException-invalid-input2", message="invalid value for %s" %name, serverError="invalid value %s for %s" %(value, name), logger=log.error)	
                                 elif name =='sumOverLumi':
                                     try:
                                         int(value)
@@ -129,26 +129,26 @@ def inputChecks(**_params_):
                                                 serverLog = str(e) + "\n run_num=%s is an invalid run number." %run_num 
                                                 dbsExceptionHandler("dbsException-invalid-input2", message="Invalid input data %s...: invalid run number." %run_num[:10],\
                                                         serverError=serverLog, logger=log.error)
-				elif name == 'dataset_id':
-				    for id in value:
-					try:
-					    int(id)
-					except Exception :
-					    try: 
-						min_id, max_id = id.split('-', 1)
-						int(min_id)
-						int(max_id)
-					    except Exception as e :		
-						serverLog = str(e) + "\n dataset_id=%s is an invalid oracle id." %dataset_id
-						dbsExceptionHandler("dbsException-invalid-input2", message="Invalid input data %s...: invalid dataset_id." %id[:10], \
+                                elif name == 'dataset_id':
+                                    for id in value:
+                                        try:
+                                            int(id)
+                                        except Exception :
+                                            try: 
+                                                min_id, max_id = id.split('-', 1)
+                                                int(min_id)
+                                                int(max_id)
+                                            except Exception as e :		
+                                                serverLog = str(e) + "\n dataset_id=%s is an invalid oracle id." %dataset_id
+                                                dbsExceptionHandler("dbsException-invalid-input2", message="Invalid input data %s...: invalid dataset_id." %id[:10], \
 							serverError=serverLog, logger=log.error)		
                         except AssertionError as ae:
                             serverLog = str(ae) + " key-value pair (%s, %s) cannot pass input checking" %(name, value)
                             #print ae
                             dbsExceptionHandler("dbsException-invalid-input2", message="Invalid Input Data %s...: Not Match Required Format" %value[:10],\
                                         serverError=serverLog, logger=log.error)
-			except Exception as e1:
-			    raise	
+                        except Exception as e1:
+                            raise	
 			
             return _func_(*args, **kw)
         return wrapped

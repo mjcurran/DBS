@@ -4,7 +4,7 @@
 DBS Rest Model module
 """
 import re
-import cjson
+import ujson
 
 from cherrypy import request, tools, HTTPError
 from WMCore.DAOFactory import DAOFactory
@@ -99,11 +99,11 @@ class DBSWriterModel(DBSReaderModel):
         """
         try :
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
             indata = validateJSONInputNoCopy("primds", indata)
             indata.update({"creation_date": dbsUtils().getTime(), "create_by": dbsUtils().getCreateBy() })
             self.dbsPrimaryDataset.insertPrimaryDataset(indata)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert PrimaryDataset input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)
@@ -131,12 +131,12 @@ class DBSWriterModel(DBSReaderModel):
         """
         try:
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
             indata = validateJSONInputNoCopy("dataset_conf_list", indata)
             indata.update({"creation_date": dbsUtils().getTime(),
                            "create_by" : dbsUtils().getCreateBy()})
             self.dbsOutputConfig.insertOutputConfig(indata)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert OutputConfig input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)
@@ -182,13 +182,13 @@ class DBSWriterModel(DBSReaderModel):
         """
         try:
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
             indata = validateJSONInputNoCopy("acquisition_era", indata)
             indata.update({"start_date": indata.get("start_date", dbsUtils().getTime()),\
                            "creation_date": indata.get("creation_date", dbsUtils().getTime()), \
                            "create_by" : dbsUtils().getCreateBy() })
             self.dbsAcqEra.insertAcquisitionEra(indata)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert AcquisitionEra input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.serverError)
@@ -211,12 +211,12 @@ class DBSWriterModel(DBSReaderModel):
         """
         try:
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
             indata = validateJSONInputNoCopy('processing_era', indata)
             indata.update({"creation_date": indata.get("creation_date", dbsUtils().getTime()), \
                            "create_by" : dbsUtils().getCreateBy() })
             self.dbsProcEra.insertProcessingEra(indata)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert ProcessingEra input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)
@@ -248,7 +248,7 @@ class DBSWriterModel(DBSReaderModel):
         """
         try:
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
             indata = validateJSONInputNoCopy('dataset', indata)
             indata.update({"creation_date": dbsUtils().getTime(),
                             "last_modification_date" : dbsUtils().getTime(),
@@ -267,7 +267,7 @@ class DBSWriterModel(DBSReaderModel):
                 except Exception as exp:
                     err = 'insertDataset NATS error, %s, trace:\n%s' % (str(exp), traceback.format_exc())
                     self.logger.warning(err)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert dataset input",  self.logger.exception, str(dc)) 
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)
@@ -288,7 +288,7 @@ class DBSWriterModel(DBSReaderModel):
         """
         try:
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
             if (indata.get("file_parent_list", []) and indata.get("dataset_parent_list", [])): 
                 dbsExceptionHandler("dbsException-invalid-input2", "insertBulkBlock: dataset and file parentages cannot be in the input at the same time",  
                     self.logger.exception, "insertBulkBlock: datset and file parentages cannot be in the input at the same time.")    
@@ -306,7 +306,7 @@ class DBSWriterModel(DBSReaderModel):
                 except Exception as exp:
                     err = 'insertDataset NATS error, %s, trace:\n%s' % (str(exp), traceback.format_exc())
                     self.logger.warning(err)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert BulkBlock input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)
@@ -333,10 +333,10 @@ class DBSWriterModel(DBSReaderModel):
         """
         try:
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
             indata = validateJSONInputNoCopy("file_parent", indata)
             self.dbsFile.insertFileParents(indata)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insertFileParents input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)
@@ -366,10 +366,10 @@ class DBSWriterModel(DBSReaderModel):
         """
         try:
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
             indata = validateJSONInputNoCopy("block", indata)
             self.dbsBlock.insertBlock(indata)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert Block input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)
@@ -406,7 +406,7 @@ class DBSWriterModel(DBSReaderModel):
         if qInserts in (False, 'False'): qInserts=False
         try:
             body = request.body.read()
-            indata = cjson.decode(body)["files"]
+            indata = ujson.decode(body)["files"]
             if not isinstance(indata, (list, dict)):
                 dbsExceptionHandler("dbsException-invalid-input", "Invalid Input DataType", self.logger.exception, \
                                       "insertFile expects input as list or dirc")
@@ -443,7 +443,7 @@ class DBSWriterModel(DBSReaderModel):
                 except Exception as exp:
                     err = 'insertFile NATS error, %s, trace:\n%s' % (str(exp), traceback.format_exc())
                     self.logger.warning(err)
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert File input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)
@@ -564,7 +564,7 @@ class DBSWriterModel(DBSReaderModel):
             tran = conn.begin()
 
             body = request.body.read()
-            indata = cjson.decode(body)
+            indata = ujson.decode(body)
 
             indata = validateJSONInputNoCopy("dataTier", indata)
 
@@ -579,7 +579,7 @@ class DBSWriterModel(DBSReaderModel):
                     data_tier_name is required.")
             self.dbsDataTierInsertDAO.execute(conn, indata, tran)
             if tran: tran.commit()
-        except cjson.DecodeError as dc:
+        except ujson.DecodeError as dc:
             dbsExceptionHandler("dbsException-invalid-input2", "Wrong format/data from insert DataTier input",  self.logger.exception, str(dc))
         except dbsException as de:
             dbsExceptionHandler(de.eCode, de.message, self.logger.exception, de.message)

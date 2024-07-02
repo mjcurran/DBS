@@ -4,7 +4,7 @@
 DBS Migration Service Client Interface Rest Model module
 """
 
-import cjson
+import ujson
 import traceback
 
 from cherrypy import request, tools, HTTPError
@@ -77,7 +77,7 @@ class DBSMigrateModel(RESTModel):
         MIGRATION_INPUT: The block or dataset names to be migrated.
         """
         body = request.body.read()
-        indata = cjson.decode(body)
+        indata = ujson.decode(body)
         try:
             indata = validateJSONInputNoCopy("migration_rqst", indata)
             indata.update({"creation_date": dbsUtils().getTime(),
@@ -92,9 +92,9 @@ class DBSMigrateModel(RESTModel):
             sError = "DBSMigrateModle/submit. %s\n Exception trace: \n %s." \
                      % (ex, traceback.format_exc() )
             if hasattr(ex, 'status') and ex.status == 400:
-		dbsExceptionHandler('dbsException-invalid-input2', str(ex), self.logger.exception, sError)
-	    else:	
-		dbsExceptionHandler('dbsException-server-error',  str(ex), self.logger.exception, sError)
+                dbsExceptionHandler('dbsException-invalid-input2', str(ex), self.logger.exception, sError)
+            else:	
+                dbsExceptionHandler('dbsException-server-error',  str(ex), self.logger.exception, sError)
     
     @inputChecks(migration_rqst_id=(int, int, str), block_name=str, dataset=str, user=str)
     def status(self, migration_rqst_id="", block_name="", dataset="", user=""):
@@ -112,10 +112,10 @@ class DBSMigrateModel(RESTModel):
         except Exception as ex:
             sError = "DBSMigrateModle/status. %s\n Exception trace: \n %s." \
                      % (ex, traceback.format_exc() )
-	    if hasattr(ex, 'status') and ex.status == 400:
-		dbsExceptionHandler('dbsException-invalid-input2', str(ex), self.logger.exception, sError)	
+            if hasattr(ex, 'status') and ex.status == 400:
+                dbsExceptionHandler('dbsException-invalid-input2', str(ex), self.logger.exception, sError)	
             else:
-		dbsExceptionHandler('dbsException-server-error',  str(ex), self.logger.exception, sError)
+                dbsExceptionHandler('dbsException-server-error',  str(ex), self.logger.exception, sError)
     
     def remove(self):
         """
@@ -125,7 +125,7 @@ class DBSMigrateModel(RESTModel):
 
         """
         body = request.body.read()
-        indata = cjson.decode(body)
+        indata = ujson.decode(body)
         try:
             indata = validateJSONInputNoCopy("migration_rqst", indata)
             return self.dbsMigrate.removeMigrationRequest(indata)
